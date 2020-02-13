@@ -1,0 +1,148 @@
+    @echo off
+
+    rem  请不要修改本文档
+    rem author : konger
+
+    color 1f
+    title 正在激活 Windows，请不要关闭本窗口。
+    pushd "%~dp0"
+
+    cls
+    if /i "%PROCESSOR_IDENTIFIER:~0,3%"=="x86" (
+    set "bit=x86"
+    ) else (
+    set "bit=x64"
+       )
+
+ping /n 2 www.baidu.com >nul 2>mul && goto StartActive
+ping /n 2 www.qq.com >nul 2>nul || exit
+
+    :StartActive
+    wmic path SoftwareLicensingProduct where (LicenseStatus='1' and GracePeriodRemaining='0') get Name 2>nul | findstr /i "Windows" >nul 2>&1 && (exit )
+
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableLUA" /t REG_DWORD /d "0"/f >nul
+    for /f "tokens=3 delims= " %%i in ('cscript /nologo %SystemRoot%\System32\slmgr.vbs /dli ^| findstr /i "edition"') do (set edition=%%i)
+    call :%edition%
+
+    cscript /nologo %SystemRoot%\System32\slmgr.vbs /ipk %pidkey% || goto quit
+    timeout /nobreak /t 2 >nul
+
+    reg add "HKLM\SYSTEM\Tokens" /v "Channel" /t REG_SZ /d "Retail" /f >nul
+    reg add "HKLM\SYSTEM\Tokens\Kernel" /v "Kernel-ProductInfo" /t REG_DWORD /d "%sku%" /f >nul
+    reg add "HKLM\SYSTEM\Tokens\Kernel" /v "Security-SPP-GenuineLocalStatus" /t REG_DWORD /d "1" /f >nul
+    reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "\"%~dp0bin\%bit%\gatherosstate.exe"\" /d "^ WIN7RTM" /f >nul
+
+    set "number=0"
+    :Reset
+    set /a "number=%number%+1"
+    start /wait "" ".\bin\%bit%\gatherosstate.exe"
+    timeout /nobreak /t 3 >nul
+    if exist ".\bin\%bit%\GenuineTicket.xml" (
+    goto app
+        )
+    if "%number%" lss "3" (
+    goto Reset
+        )
+    goto quit
+
+    :app
+    clipup -v -o -altto .\bin\%bit%\
+    cscript /nologo %SystemRoot%\system32\slmgr.vbs /ato
+
+    :quit
+    reg delete "HKLM\SYSTEM\Tokens" /f >nul
+    reg delete "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "\"%~dp0bin\%bit%\gatherosstate.exe"\" /f >nul
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableLUA" /t REG_DWORD /d "1"/f >nul
+    rmdir /q /s bin
+    del %0
+    exit
+
+    :Cloud
+    set "sku=178"
+    set "pidkey=V3WVW-N2PV2-CGWC3-34QGF-VMJ2C"
+    goto :eof
+
+    :CloudN
+    set "sku=179"
+    set "pidkey=NH9J3-68WK7-6FB93-4K3DF-DJ4F6"
+    goto :eof
+
+    :Core
+    set "sku=101"
+    set "pidkey=YTMG3-N6DKC-DKB77-7M9GH-8HVX7"
+    goto :eof
+
+    :CoreN
+    set "sku=98"
+    set "pidkey=4CPRK-NM3K3-X6XXQ-RXX86-WXCHW"
+    goto :eof
+
+    :CoreCountrySpecific
+    set "sku=99"
+    set "pidkey=N2434-X9D7W-8PF6X-8DV9T-8TYMD"
+    goto :eof
+
+    :CoreSingleLanguage
+    set "sku=100"
+    set "pidkey=BT79Q-G7N6G-PGBYW-4YWX6-6F4BT"
+    goto :eof
+
+    :Professional
+    set "sku=48"
+    set "pidkey=VK7JG-NPHTM-C97JM-9MPGT-3V66T"
+    goto :eof
+
+    :ProfessionalN
+    set "sku=49"
+    set "pidkey=2B87N-8KFHP-DKV6R-Y2C8J-PKCKT"
+    goto :eof
+
+    :ProfessionalEducation
+    set "sku=164"
+    set "pidkey=8PTT6-RNW4C-6V7J2-C2D3X-MHBPB"
+    goto :eof
+
+    :ProfessionalEducationN
+    set "sku=165"
+    set "pidkey=GJTYN-HDMQY-FRR76-HVGC7-QPF8P"
+    goto :eof
+
+    :ProfessionalWorkstation
+    set "sku=161"
+    set "pidkey=DXG7C-N36C4-C4HTG-X4T3X-2YV77"
+    goto :eof
+
+    :ProfessionalWorkstationN
+    set "sku=162"
+    set "pidkey=WYPNQ-8C467-V2W6J-TX4WX-WT2RQ"
+    goto :eof
+
+    :Education
+    set "sku=121"
+    set "pidkey=YNMGQ-8RYV3-4PGQ3-C8XTP-7CFBY"
+    goto :eof
+
+    :EducationN
+    set "sku=122"
+    set "pidkey=84NGF-MHBT6-FXBX8-QWJK7-DRR8H"
+    goto :eof
+
+    :Enterprise
+    set "sku=4"
+    set "pidkey=XGVPP-NMH47-7TTHJ-W3FW7-8HV2C"
+    goto :eof
+
+    :EnterpriseN
+    set "sku=27"
+    set "pidkey=YHMNQ-PPQW2-P8PGP-32643-C372T"
+    goto :eof
+
+    :EnterpriseS
+    set "sku=125"
+    set "pidkey=NK96Y-D9CD8-W44CQ-R8YTK-DYJWX"
+    goto :eof
+
+    :EnterpriseSN
+    set "sku=126"
+    set "pidkey=C73T8-FNJRG-FTQWK-2JP2R-VMJWR"
+    goto :eof
